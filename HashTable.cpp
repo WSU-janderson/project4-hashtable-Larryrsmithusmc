@@ -94,3 +94,75 @@ size_t HashTable::probeIndex(size_t home, size_t i) const {
 }
 
 HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {}
+
+void HashTable::resize() {
+    vector<HashTableBucket> oldTable = table;
+    table.clear();
+    table.resize(oldTable.size() * 2);
+    currentSize = 0;
+    for(size_t i = 0; i < oldTable.size(); i++) {
+        if (oldTable[i].type == HashTableBucket::bucketType::Normal) {
+            insert(oldTable[i].key, oldTable[i].value);
+        }
+    }
+}
+bool HashTable::insert(const string &key, const size_t &value) {
+    if (alpha() >= 0.5) {
+        resize();
+    }
+    srand(static_cast<unsigned int>(key.length()));
+    generateOffsets();
+    size_t home = hash(key);
+
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = probeIndex(home, i);
+        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
+            return false; // Duplicate key
+        }
+    }
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = probeIndex(home, i);
+        if (table[index].type == HashTableBucket::bucketType::ESS ||
+            table[index].type == HashTableBucket::bucketType::EAR) {
+            table[index].load(key, value);
+            currentSize++;
+            return true; // Successful insertion
+        }
+    }
+    return false; // Table is full should not happen due to resizing
+}
+bool HashTable::remove(const string &key) {
+    srand(static_cast<unsigned int>(key.length()));
+    generateOffsets();
+    size_t home = hash(key);
+
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = probeIndex(home, i);
+        if (table[index].type == HashTableBucket::bucketType::ESS) {
+            return false; // Key not found
+        }
+        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
+            table[index].makeEAR();
+            currentSize--;
+            return true; // Successful removal
+        }
+    }
+    return false; // Key not found
+}
+bool HashTable::contains(const string &key) {
+    srand(static_cast<unsigned int>(key.length()));
+    generateOffsets();
+    size_t home = hash(key);
+
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = probeIndex(home, i);
+        if (table[index].type == HashTableBucket::bucketType::ESS) {
+            return false; // Key not found
+        }
+        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
+            return true; // Key found
+        }
+    }
+    return false; // Key not found
+}
+
