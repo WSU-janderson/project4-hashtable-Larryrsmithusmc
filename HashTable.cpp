@@ -69,6 +69,8 @@ ostream &operator<<(ostream &os, const HashTableBucket &bucket) {
     return os;
 }
 
+HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {}
+
 size_t HashTable::hash(const string &key) const {
     size_t sum = 0;
     for (char ch : key) {
@@ -82,7 +84,7 @@ void HashTable::generateOffsets() {
     for (size_t i = 0; i < size; i++) {
         offsets.push_back(i);
     }
-    for (size_t i = 1; i < table.size(); i++) {
+    for (size_t i = 0; i < table.size(); i++) {
         size_t j = rand() % offsets.size();
         size_t temp = offsets[i];
         offsets[i] = offsets[j];
@@ -92,9 +94,6 @@ void HashTable::generateOffsets() {
 size_t HashTable::probeIndex(size_t home, size_t i) const {
     return (home + offsets[i % offsets.size()]) % table.size();
 }
-
-HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {}
-
 void HashTable::resize() {
     vector<HashTableBucket> oldTable = table;
     table.clear();
@@ -206,8 +205,16 @@ double HashTable::alpha() const {
     return static_cast<double>(currentSize) / static_cast<double>(table.size());
 }
 size_t HashTable::capacity() const {
-    return table.capacity();
+    return table.size();
 }
 size_t HashTable::size() const {
     return currentSize;
+}
+ostream &operator<<(ostream &os, const HashTable &table) {
+    for (size_t i = 0; i < table.size(); i++) {
+        if (table.table[i].type == HashTableBucket::bucketType::Normal) {
+            os << "Bucket: " << i << "] Key: " << table.table[i].key << ", Value: " << table.table[i].value << endl;
+        }
+    }
+    return os;
 }
