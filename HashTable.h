@@ -64,8 +64,6 @@ public:
 
     size_t size() const;
 
-    void rehashBackwards();
-
     friend ostream &operator<<(ostream &os, const HashTable &table);
 
 private:

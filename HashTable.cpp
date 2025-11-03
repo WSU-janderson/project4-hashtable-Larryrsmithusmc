@@ -165,4 +165,49 @@ bool HashTable::contains(const string &key) {
     }
     return false; // Key not found
 }
+optional<size_t> HashTable::get(const string &key) const {
+    srand(static_cast<unsigned int>(key.length()));
+    size_t home = hash(key);
 
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = (home + offsets[i % offsets.size()]) % table.size();
+        if (table[index].type == HashTableBucket::bucketType::ESS) {
+            return nullopt; // Key not found
+        }
+        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
+            return table[index].value; // Key found
+        }
+    }
+    return nullopt; // Key not found
+}
+size_t &HashTable::operator[](const string &key) {
+    srand(static_cast<unsigned int>(key.length()));
+    generateOffsets();
+    size_t home = hash(key);
+
+    for (size_t i = 0; i < table.size(); i++) {
+        size_t index = probeIndex(home, i);
+        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
+            return table[index].value; // Key found
+        }
+    }
+    throw runtime_error("Key not found");
+}
+vector<string> HashTable::keys() const {
+    vector<string> result;
+    for (size_t i = 0; i < table.size(); i++) {
+        if (table[i].type == HashTableBucket::bucketType::Normal) {
+            result.push_back(table[i].key);
+        }
+    }
+    return result;
+}
+double HashTable::alpha() const {
+    return static_cast<double>(currentSize) / static_cast<double>(table.size());
+}
+size_t HashTable::capacity() const {
+    return table.capacity();
+}
+size_t HashTable::size() const {
+    return currentSize;
+}
