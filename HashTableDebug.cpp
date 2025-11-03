@@ -1,11 +1,13 @@
-/**
- * HashTableDebug.cpp
- *
- * Write your tests in this file
+/*
+* Larry Smith
+ * Project#4
+ * CS 3100
+ * Map ADT : HashTable
+ * 11/3/2025
  */
+
 #include <iostream>
 #include "HashTable.h"
-
 
 using namespace std;
 
