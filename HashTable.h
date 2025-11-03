@@ -64,13 +64,18 @@ public:
 
     size_t size() const;
 
+    void rehashBackwards();
+
     friend ostream &operator<<(ostream &os, const HashTable &table);
 
 private:
     vector<HashTableBucket> table;
+    vector<size_t> offsets;
     size_t currentSize;
 
-    size_t hashFunction(const string &key) const;
+    size_t hash(const string &key) const;
+    size_t probeIndex(size_t home, size_t i) const;
+    void generateOffsets();
+    void resize();
 
-    void rehash();
 };

@@ -7,9 +7,8 @@
  */
 
 #include <iostream>
-#include <vector>
-#include <optional>
 #include <string>
+#include <vector>
 #include "HashTable.h"
 
 using namespace std;
@@ -69,3 +68,29 @@ ostream &operator<<(ostream &os, const HashTableBucket &bucket) {
     }
     return os;
 }
+
+size_t HashTable::hash(const string &key) const {
+    size_t sum = 0;
+    for (char ch : key) {
+        sum += static_cast<size_t>(ch);
+    }
+    return sum % table.size();
+}
+void HashTable::generateOffsets() {
+    offsets.clear();
+    size_t size = table.size();
+    for (size_t i = 0; i < size; i++) {
+        offsets.push_back(i);
+    }
+    for (size_t i = 1; i < table.size(); i++) {
+        size_t j = rand() % offsets.size();
+        size_t temp = offsets[i];
+        offsets[i] = offsets[j];
+        offsets[j] = temp;
+    }
+}
+size_t HashTable::probeIndex(size_t home, size_t i) const {
+    return (home + offsets[i % offsets.size()]) % table.size();
+}
+
+HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {}
