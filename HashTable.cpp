@@ -69,15 +69,17 @@ ostream &operator<<(ostream &os, const HashTableBucket &bucket) {
     return os;
 }
 
-HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {}
+HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {
+}
 
 size_t HashTable::hash(const string &key) const {
     size_t sum = 0;
-    for (char ch : key) {
+    for (char ch: key) {
         sum += static_cast<size_t>(ch);
     }
     return sum % table.size();
 }
+
 void HashTable::generateOffsets() {
     offsets.clear();
     size_t size = table.size();
@@ -91,20 +93,23 @@ void HashTable::generateOffsets() {
         offsets[j] = temp;
     }
 }
+
 size_t HashTable::probeIndex(size_t home, size_t i) const {
     return (home + offsets[i % offsets.size()]) % table.size();
 }
+
 void HashTable::resize() {
     vector<HashTableBucket> oldTable = table;
     table.clear();
     table.resize(oldTable.size() * 2);
     currentSize = 0;
-    for(size_t i = 0; i < oldTable.size(); i++) {
+    for (size_t i = 0; i < oldTable.size(); i++) {
         if (oldTable[i].type == HashTableBucket::bucketType::Normal) {
             insert(oldTable[i].key, oldTable[i].value);
         }
     }
 }
+
 bool HashTable::insert(const string &key, const size_t &value) {
     if (alpha() >= 0.5) {
         resize();
@@ -130,6 +135,7 @@ bool HashTable::insert(const string &key, const size_t &value) {
     }
     return false; // Table is full should not happen due to resizing
 }
+
 bool HashTable::remove(const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -148,6 +154,7 @@ bool HashTable::remove(const string &key) {
     }
     return false; // Key not found
 }
+
 bool HashTable::contains(const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -164,21 +171,16 @@ bool HashTable::contains(const string &key) {
     }
     return false; // Key not found
 }
-optional<size_t> HashTable::get(const string &key) const {
-    srand(static_cast<unsigned int>(key.length()));
-    size_t home = hash(key);
 
-    for (size_t i = 0; i < table.size(); i++) {
-        size_t index = (home + offsets[i % offsets.size()]) % table.size();
-        if (table[index].type == HashTableBucket::bucketType::ESS) {
-            return nullopt; // Key not found
-        }
-        if (table[index].type == HashTableBucket::bucketType::Normal && table[index].key == key) {
-            return table[index].value; // Key found
+optional<size_t> HashTable::get(const string &key) const {
+    for (const auto &bucket: table) {
+        if (bucket.type == HashTableBucket::bucketType::Normal && bucket.key == key) {
+            return bucket.value;
         }
     }
-    return nullopt; // Key not found
+    return nullopt;
 }
+
 size_t &HashTable::operator[](const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -192,6 +194,7 @@ size_t &HashTable::operator[](const string &key) {
     }
     throw runtime_error("Key not found");
 }
+
 vector<string> HashTable::keys() const {
     vector<string> result;
     for (size_t i = 0; i < table.size(); i++) {
@@ -201,19 +204,25 @@ vector<string> HashTable::keys() const {
     }
     return result;
 }
+
 double HashTable::alpha() const {
     return static_cast<double>(currentSize) / static_cast<double>(table.size());
 }
+
 size_t HashTable::capacity() const {
     return table.size();
 }
+
 size_t HashTable::size() const {
     return currentSize;
 }
+
 ostream &operator<<(ostream &os, const HashTable &table) {
-    for (size_t i = 0; i < table.size(); i++) {
+    for (size_t i = 0; i < table.table.size(); i++) {
         if (table.table[i].type == HashTableBucket::bucketType::Normal) {
-            os << "Bucket: " << i << "] Key: " << table.table[i].key << ", Value: " << table.table[i].value << endl;
+            os << "Bucket: " << i
+                    << ", Key: " << table.table[i].key
+                    << ", Value: " << table.table[i].value << endl;
         }
     }
     return os;

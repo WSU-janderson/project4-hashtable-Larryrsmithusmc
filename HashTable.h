@@ -72,8 +72,10 @@ private:
     size_t currentSize;
 
     size_t hash(const string &key) const;
-    size_t probeIndex(size_t home, size_t i) const;
-    void generateOffsets();
-    void resize();
 
+    size_t probeIndex(size_t home, size_t i) const;
+
+    void generateOffsets();
+
+    void resize();
 };
