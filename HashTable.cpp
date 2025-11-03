@@ -12,48 +12,57 @@
 #include "HashTable.h"
 
 using namespace std;
-
+// HashTableBucket Implementation
 HashTableBucket::HashTableBucket() : key(""), value(0), type(bucketType::ESS) {
 }
 
+// Parameterized constructor
 HashTableBucket::HashTableBucket(const string &key, const size_t &value) : key(key), value(value),
                                                                            type(bucketType::Normal) {
 }
 
+// Load key and value into the bucket
 void HashTableBucket::load(const string &key, const size_t &value) {
     this->key = key;
     this->value = value;
     makeNormal();
 }
 
+// Check if the bucket is empty
 bool HashTableBucket::isEmpty() const {
     return type == bucketType::ESS || type == bucketType::EAR;
 }
 
+// Check if the bucket is empty since the start
 bool HashTableBucket::isEmptySinceStart() const {
     return type == bucketType::ESS;
 }
 
+// Check if the bucket is empty after removal
 bool HashTableBucket::isEmptyAfterRemove() const {
     return type == bucketType::EAR;
 }
 
+// Make the bucket normal
 void HashTableBucket::makeNormal() {
     type = bucketType::Normal;
 }
 
+// Make the bucket empty since start
 void HashTableBucket::makeESS() {
     key.clear();
     value = 0;
     type = bucketType::ESS;
 }
 
+// Make the bucket empty after remove
 void HashTableBucket::makeEAR() {
     key.clear();
     value = 0;
     type = bucketType::EAR;
 }
 
+// Output operator for HashTableBucket
 ostream &operator<<(ostream &os, const HashTableBucket &bucket) {
     switch (bucket.type) {
         case HashTableBucket::bucketType::Normal:
@@ -69,9 +78,12 @@ ostream &operator<<(ostream &os, const HashTableBucket &bucket) {
     return os;
 }
 
+// HashTable Implementation
 HashTable::HashTable(size_t initCapacity) : table(initCapacity), currentSize(0) {
 }
 
+// Simple hash function for sum of ASCII values mod table size. Pretty much turning string name into a number value
+// Like Bob into 66+111+98=275 then mod table size used in my probing
 size_t HashTable::hash(const string &key) const {
     size_t sum = 0;
     for (char ch: key) {
@@ -80,6 +92,7 @@ size_t HashTable::hash(const string &key) const {
     return sum % table.size();
 }
 
+// Generate random offsets for probing based on the key length as seed
 void HashTable::generateOffsets() {
     offsets.clear();
     size_t size = table.size();
@@ -94,10 +107,12 @@ void HashTable::generateOffsets() {
     }
 }
 
+// Calculate probe index using home index and offset
 size_t HashTable::probeIndex(size_t home, size_t i) const {
     return (home + offsets[i % offsets.size()]) % table.size();
 }
 
+// Resize the hash table when load factor exceeds 0.5
 void HashTable::resize() {
     vector<HashTableBucket> oldTable = table;
     table.clear();
@@ -110,6 +125,7 @@ void HashTable::resize() {
     }
 }
 
+// Insert key-value pair return false if key exists
 bool HashTable::insert(const string &key, const size_t &value) {
     if (alpha() >= 0.5) {
         resize();
@@ -136,6 +152,7 @@ bool HashTable::insert(const string &key, const size_t &value) {
     return false; // Table is full should not happen due to resizing
 }
 
+// remove key from the table return false if key not found
 bool HashTable::remove(const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -155,6 +172,7 @@ bool HashTable::remove(const string &key) {
     return false; // Key not found
 }
 
+// remove key from the table return false if key not found
 bool HashTable::contains(const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -172,6 +190,7 @@ bool HashTable::contains(const string &key) {
     return false; // Key not found
 }
 
+// get value associated with key return nullopt if not found
 optional<size_t> HashTable::get(const string &key) const {
     for (const auto &bucket: table) {
         if (bucket.type == HashTableBucket::bucketType::Normal && bucket.key == key) {
@@ -181,6 +200,7 @@ optional<size_t> HashTable::get(const string &key) const {
     return nullopt;
 }
 
+// access or insert value associated with key
 size_t &HashTable::operator[](const string &key) {
     srand(static_cast<unsigned int>(key.length()));
     generateOffsets();
@@ -195,6 +215,7 @@ size_t &HashTable::operator[](const string &key) {
     throw runtime_error("Key not found");
 }
 
+// return all keys in the table
 vector<string> HashTable::keys() const {
     vector<string> result;
     for (size_t i = 0; i < table.size(); i++) {
@@ -205,18 +226,22 @@ vector<string> HashTable::keys() const {
     return result;
 }
 
+// return load factor
 double HashTable::alpha() const {
     return static_cast<double>(currentSize) / static_cast<double>(table.size());
 }
 
+// return current capacity of the table
 size_t HashTable::capacity() const {
     return table.size();
 }
 
+// return current size of the table
 size_t HashTable::size() const {
     return currentSize;
 }
 
+// Output operator
 ostream &operator<<(ostream &os, const HashTable &table) {
     for (size_t i = 0; i < table.table.size(); i++) {
         if (table.table[i].type == HashTableBucket::bucketType::Normal) {
